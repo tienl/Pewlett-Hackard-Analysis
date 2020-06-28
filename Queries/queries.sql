@@ -233,29 +233,34 @@ SELECT e.emp_no,
 	ti.title, 
 	ti.to_date,
 	s.salary	
-INTO deliv1
+--INTO deliv1  commented out after table is formed, for usage in pgadmin on screen
 FROM employees as e
 INNER JOIN titles as ti 
 ON (e.emp_no = ti.emp_no)
 INNER JOIN salaries as s 
-ON (ti.emp_no = s.emp_no)
-WHERE e.birth_date BETWEEN '1952-01-01' AND '1955-12-31';
+ON (e.emp_no = s.emp_no)
+WHERE e.birth_date BETWEEN '1952-01-01' AND '1955-12-31'
+group by ti.title, e.emp_no, ti.to_date, s.salary
+;
 
--- finding duplicates from deliv1 
+
+
+-- finding duplicates from deliv1 - internet method
 select emp_no, first_name, count(*) 
 from deliv1 
 group by emp_no, first_name
 having count (*) > 1
 
-select * from titles where emp_no = 10011
+
 -- Partition the data to show only most recent title per employee
+-- deliverable 1.2
 SELECT emp_no,
  first_name,
  last_name,
  title,
  to_date,
  salary
---INTO deliv1_2
+INTO deliv1_2  -- after table is created comment out to view in pgadmin
 FROM
  (SELECT emp_no,
  first_name,
@@ -270,3 +275,60 @@ FROM
  ) tmp WHERE rn = 1
 ORDER BY emp_no;
 
+
+--deliverable 2 mentorship eligibility 
+-- Birthdate = 1965
+-- 2x inner join 
+SELECT e.emp_no,
+	e.first_name,
+	e.last_name,
+	e.birth_date,
+	ti.title, 
+	d.from_date,
+	d.to_date
+INTO deliv2  --commenting out once table is built for pgadmin view
+FROM employees as e
+INNER JOIN dept_emp as d 
+ON (e.emp_no = d.emp_no)
+INNER JOIN titles as ti 
+ON (e.emp_no = ti.emp_no)
+WHERE e.birth_date BETWEEN '1965-01-01' AND '1965-12-31'
+--order by emp_no  -- while there are dups the rubik did not specifically call out to remove them.  Discussion over slack confirmed additional data should be useful to have, and no need to remove dupes
+
+
+
+select * from deliv2 order by emp_no
+
+
+	
+
+
+
+select * from titles ORDER BY emp_no
+
+INNER JOIN titles as ti 
+ON (e.emp_no = ti.emp_no)
+
+--find and remove duplicate for deliverable 2 
+SELECT emp_no,
+ first_name,
+ last_name,
+ title,
+ from_date,
+ to_date
+INTO deliv2_2  -- after table is created comment out to view in pgadmin
+FROM
+ (SELECT emp_no,
+ first_name,
+ last_name,
+ title,
+ from_date,
+  to_date,
+   ROW_NUMBER() OVER
+ (PARTITION BY (emp_no)
+ ORDER BY to_date DESC) rn
+ FROM deliv2
+ ) tmp WHERE rn = 1
+ORDER BY emp_no;
+
+select * from titles where emp_no = 10291
